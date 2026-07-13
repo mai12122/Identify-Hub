@@ -1,0 +1,6 @@
+{
+  "name": "Decentralized Identity Manager",
+  "description": "A secure fullstack Decentralized Identity (DID) system for issuing, managing, and verifying credentials on-chain.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
