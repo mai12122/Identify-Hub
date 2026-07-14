@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SimulatedWallet } from '../types';
 import { SimulatedEVM, SIMULATED_WALLETS } from '../mockBlockchain';
 import { ShieldAlert, CheckCircle, Key, FilePlus, UserCheck, Trash2, Calendar, User, Hash, HelpCircle, Plus } from 'lucide-react';
+import Button from './ui/Button';
 
 interface IssuerPanelProps {
   evm: SimulatedEVM;
@@ -120,14 +121,14 @@ export default function IssuerPanel({ evm, activeAccount, onRefresh, addToast }:
       {/* Authorization Banner */}
       <div className="lg:col-span-12">
         {isAuthorized ? (
-          <div className="bg-emerald-950/10 border border-emerald-500/15 rounded-2xl p-4.5 flex items-center space-x-3 text-emerald-400 shadow-[0_4px_25px_rgba(16,185,129,0.02)]">
+          <div className="card p-4.5 flex items-center space-x-3 text-emerald-400">
             <CheckCircle className="w-5.5 h-5.5 shrink-0" />
             <div className="text-xs leading-relaxed">
               <span className="font-semibold">Issuer Status Active:</span> You are an accredited identity authority. You can record cryptographically signed credentials on-chain.
             </div>
           </div>
         ) : (
-          <div className="bg-amber-950/10 border border-amber-500/15 rounded-2xl p-4.5 flex items-center space-x-3 text-amber-500 shadow-[0_4px_25px_rgba(245,158,11,0.02)]">
+          <div className="card p-4.5 flex items-center space-x-3 text-amber-500">
             <ShieldAlert className="w-5.5 h-5.5 shrink-0" />
             <div className="text-xs leading-relaxed">
               <span className="font-semibold">Unauthorized Issuer:</span> Your active account is not accredited. To issue a credential, select an Authorized Issuer role (like <strong>CamTech University</strong>) from the active wallets dropdown above.
@@ -137,7 +138,7 @@ export default function IssuerPanel({ evm, activeAccount, onRefresh, addToast }:
       </div>
 
       {/* Main Issue Form */}
-      <div className="lg:col-span-8 bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+      <div className="lg:col-span-8 card p-6">
         <h3 className="text-base font-semibold font-display tracking-tight text-zinc-100 mb-6 flex items-center space-x-2.5">
           <FilePlus className="w-5.5 h-5.5 text-emerald-400" />
           <span>Issue On-Chain Verifiable Credential</span>
@@ -243,21 +244,17 @@ export default function IssuerPanel({ evm, activeAccount, onRefresh, addToast }:
             </div>
           </div>
 
-          <div className="pt-4 border-t border-zinc-900/50 flex justify-end">
-            <button
-              type="submit"
-              disabled={!isAuthorized}
-              className="flex items-center space-x-1.5 px-5 py-2.5 text-xs font-semibold text-zinc-50 bg-emerald-600 hover:bg-emerald-500 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] border border-emerald-500/20 rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
-            >
+            <div className="pt-4 border-t border-zinc-900/50 flex justify-end">
+            <Button type="submit" disabled={!isAuthorized} size="md">
               <FilePlus className="w-3.5 h-3.5" />
               <span>Issue Verifiable Credential</span>
-            </button>
+            </Button>
           </div>
         </form>
       </div>
 
       {/* Admin / Issuer Management Console */}
-      <div className="lg:col-span-4 bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col justify-between">
+      <div className="lg:col-span-4 card p-5 flex flex-col justify-between">
         <div>
           <h3 className="text-sm font-semibold font-display tracking-tight text-zinc-200 mb-4 flex items-center space-x-2">
             <UserCheck className="w-4 h-4 text-violet-400" />
@@ -295,7 +292,7 @@ export default function IssuerPanel({ evm, activeAccount, onRefresh, addToast }:
 
         {/* Authorize New Issuer Form */}
         {isAdmin ? (
-          <form onSubmit={handleAuthorizeIssuer} className="pt-4 border-t border-zinc-900/50">
+            <form onSubmit={handleAuthorizeIssuer} className="pt-4 border-t border-zinc-900/50">
             <label className="block text-[9px] font-semibold text-zinc-500 uppercase tracking-widest mb-2 font-mono">
               Accredit New Issuer Address
             </label>
@@ -307,13 +304,10 @@ export default function IssuerPanel({ evm, activeAccount, onRefresh, addToast }:
                 placeholder="0xAddress..."
                 className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-900 rounded-xl text-xs font-mono text-zinc-100 placeholder-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-500/10 focus:border-violet-500/50 transition-all"
               />
-              <button
-                type="submit"
-                className="px-4 py-2 text-xs font-semibold text-zinc-50 bg-violet-600 hover:bg-violet-500 hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] border border-violet-500/20 rounded-xl transition-all duration-200 cursor-pointer flex items-center space-x-1"
-              >
+              <Button type="submit" size="md">
                 <Plus className="w-3.5 h-3.5" />
                 <span>Accredit</span>
-              </button>
+              </Button>
             </div>
             {authErrors && (
               <p className="mt-1.5 text-[11px] text-rose-400 font-mono">{authErrors}</p>

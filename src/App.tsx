@@ -27,6 +27,7 @@ import {
   X,
   ChevronDown
 } from 'lucide-react';
+import Button from './components/ui/Button';
 
 interface Toast {
   id: string;
@@ -238,21 +239,12 @@ export default function App() {
 
           {/* MetaMask Toggle Button */}
           {metaMaskConnected ? (
-            <button
-              onClick={disconnectMetaMask}
-              className="px-3.5 py-2 text-xs font-medium bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 border border-rose-900/30 rounded-xl transition-all duration-200 cursor-pointer"
-            >
-              Disconnect
-            </button>
+            <Button onClick={disconnectMetaMask} variant="ghost" size="sm">Disconnect</Button>
           ) : (
-            <button
-              onClick={connectMetaMask}
-              disabled={metaMaskLoading}
-              className="px-4 py-2 text-xs font-semibold bg-violet-600 hover:bg-violet-500 hover:shadow-[0_0_15px_rgba(139,92,246,0.25)] text-zinc-50 rounded-xl transition-all duration-200 cursor-pointer shadow-md shadow-violet-950/20 flex items-center space-x-2"
-            >
-              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+            <Button onClick={connectMetaMask} disabled={metaMaskLoading} className="flex items-center space-x-2" size="md">
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
               <span>{metaMaskLoading ? 'Connecting...' : 'Connect Wallet'}</span>
-            </button>
+            </Button>
           )}
         </div>
       </header>
@@ -261,7 +253,7 @@ export default function App() {
       <div className="relative flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 z-10">
         {/* Navigation Sidebar */}
         <aside className="lg:col-span-3 space-y-4">
-          <nav className="bg-zinc-900/20 border border-zinc-900/60 backdrop-blur-md rounded-2xl p-4 space-y-1.5">
+          <nav className="card backdrop-blur-md p-4 space-y-1.5">
             <h2 className="px-3 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
               DApp Modules
             </h2>
@@ -344,7 +336,7 @@ export default function App() {
           </nav>
 
           {/* Network Connection Mode Switcher */}
-          <div className="bg-zinc-900/20 border border-zinc-900/60 backdrop-blur-md rounded-2xl p-4.5 space-y-3.5">
+          <div className="card backdrop-blur-md p-4.5 space-y-3.5">
             <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
               Ledger Connectivity
             </h3>

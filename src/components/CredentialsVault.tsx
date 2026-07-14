@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Credential, SimulatedWallet } from '../types';
 import { SimulatedEVM, SIMULATED_WALLETS } from '../mockBlockchain';
 import { Award, ShieldAlert, CheckCircle2, ShieldCheck, XCircle, Trash2, Calendar, User, Eye, RefreshCw } from 'lucide-react';
+import Button from './ui/Button';
 
 interface CredentialsVaultProps {
   evm: SimulatedEVM;
@@ -83,7 +84,7 @@ export default function CredentialsVault({ evm, activeAccount, onRefresh, addToa
   return (
     <div id="credentials-vault" className="space-y-6">
       {/* Vault Filter and Header */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-4.5 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+      <div className="card flex flex-col sm:flex-row items-center justify-between gap-4 p-4.5">
         <div>
           <h3 className="text-sm font-semibold font-display tracking-tight text-zinc-100">On-Chain Credential Vault</h3>
           <p className="text-xs text-zinc-400">Manage, inspect, and mathematically verify credentials stored in the IdentityRegistry contract.</p>
@@ -110,7 +111,7 @@ export default function CredentialsVault({ evm, activeAccount, onRefresh, addToa
 
       {/* Grid of Credentials */}
       {filteredCreds.length === 0 ? (
-        <div className="bg-zinc-900/20 border border-zinc-900/80 rounded-2xl p-12 text-center text-zinc-500 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+        <div className="card rounded-2xl p-12 text-center text-zinc-500">
           <Award className="w-12 h-12 mx-auto text-zinc-700 mb-3" />
           <p className="text-sm font-semibold text-zinc-400">No Credentials Found</p>
           <p className="text-xs text-zinc-500 mt-1">Issue a credential through the Issuer Portal to populate this list.</p>
@@ -122,10 +123,10 @@ export default function CredentialsVault({ evm, activeAccount, onRefresh, addToa
             const isIssuer = cred.issuer.toLowerCase() === activeAccount.address.toLowerCase();
             const canRevoke = (isIssuer || isAdmin) && !cred.isRevoked;
 
-            return (
+              return (
               <div 
                 key={cred.id} 
-                className="bg-zinc-900/20 border border-zinc-900/80 hover:border-zinc-800/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col justify-between space-y-4.5 transition-all duration-200"
+                className="card hover:scale-[1.01] transition-transform duration-150 flex flex-col justify-between space-y-4.5"
               >
                 <div>
                   <div className="flex items-start justify-between">
@@ -171,13 +172,10 @@ export default function CredentialsVault({ evm, activeAccount, onRefresh, addToa
                 </div>
 
                 <div className="flex items-center space-x-2 pt-2">
-                  <button
-                    onClick={() => handleVerify(cred)}
-                    className="flex-1 flex items-center justify-center space-x-1.5 px-4 py-2.5 text-xs font-semibold text-zinc-50 bg-violet-600 hover:bg-violet-500 hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] border border-violet-500/20 rounded-xl transition-all duration-200 cursor-pointer"
-                  >
+                  <Button onClick={() => handleVerify(cred)} size="md" className="flex-1 flex items-center justify-center">
                     <ShieldCheck className="w-4 h-4" />
                     <span>Verify On-Chain</span>
-                  </button>
+                  </Button>
 
                   {canRevoke && (
                     <button
@@ -198,7 +196,7 @@ export default function CredentialsVault({ evm, activeAccount, onRefresh, addToa
       {/* Verification Detailed Modal Overlay */}
       {selectedCred && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-md p-4">
-          <div className="bg-[#0B0D13] border border-zinc-900/95 rounded-2xl max-w-lg w-full overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.8)] animate-fade-in">
+          <div className="card max-w-lg w-full overflow-hidden animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between px-5.5 py-4.5 bg-zinc-950/60 border-b border-zinc-900/50">
               <div className="flex items-center space-x-2">
@@ -215,7 +213,7 @@ export default function CredentialsVault({ evm, activeAccount, onRefresh, addToa
 
             {/* Verification progress / content */}
             <div className="p-5 space-y-4">
-              <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-900/80 space-y-2 font-mono text-[11px]">
+              <div className="glass p-4 rounded-xl border border-zinc-900/80 space-y-2 font-mono text-[11px]">
                 <div className="flex justify-between">
                   <span className="text-zinc-500">Query Target:</span>
                   <span className="text-zinc-300 font-semibold">Credential #{selectedCred.id}</span>
@@ -289,12 +287,7 @@ export default function CredentialsVault({ evm, activeAccount, onRefresh, addToa
 
             {/* Footer button */}
             <div className="px-5.5 py-4.5 bg-zinc-950 border-t border-zinc-900/50 flex justify-end">
-              <button
-                onClick={() => setSelectedCred(null)}
-                className="px-4.5 py-2 text-xs font-semibold text-zinc-50 bg-violet-600 hover:bg-violet-500 hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] border border-violet-500/20 rounded-xl transition-all duration-200 cursor-pointer"
-              >
-                Close Engine
-              </button>
+              <Button onClick={() => setSelectedCred(null)} size="md">Close Engine</Button>
             </div>
           </div>
         </div>

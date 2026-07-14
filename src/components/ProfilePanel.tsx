@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Profile, SimulatedWallet } from '../types';
 import { SimulatedEVM } from '../mockBlockchain';
 import { User, Mail, Globe, ShieldCheck, HelpCircle, Save, AlertCircle } from 'lucide-react';
+import Button from './ui/Button';
 
 interface ProfilePanelProps {
   evm: SimulatedEVM;
@@ -70,7 +71,7 @@ export default function ProfilePanel({ evm, activeAccount, onRefresh, addToast }
     <div id="profile-panel" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* DID Document Overview */}
       <div className="lg:col-span-4 space-y-6">
-        <div className="bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] relative overflow-hidden">
+        <div className="card relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-[0.02] text-zinc-100 pointer-events-none">
             <User className="w-40 h-40" />
           </div>
@@ -95,7 +96,7 @@ export default function ProfilePanel({ evm, activeAccount, onRefresh, addToast }
           </p>
         </div>
 
-        <div className="bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+        <div className="card">
           <h4 className="text-xs font-semibold text-zinc-200 mb-3.5 uppercase tracking-wider flex items-center space-x-2">
             <HelpCircle className="w-4 h-4 text-violet-400" />
             <span>How DIDs Work</span>
@@ -112,7 +113,7 @@ export default function ProfilePanel({ evm, activeAccount, onRefresh, addToast }
       </div>
 
       {/* Edit Profile Form */}
-      <div className="lg:col-span-8 bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+      <div className="lg:col-span-8 card p-6">
         <h3 className="text-base font-semibold font-display tracking-tight text-zinc-100 mb-6 flex items-center space-x-2.5">
           <User className="w-5.5 h-5.5 text-violet-400" />
           <span>Manage On-Chain Identity Profile</span>
@@ -201,13 +202,10 @@ export default function ProfilePanel({ evm, activeAccount, onRefresh, addToast }
                 <span className="text-amber-500/90">Profile Not Registered On-Chain</span>
               )}
             </div>
-            <button
-              type="submit"
-              className="flex items-center space-x-1.5 px-4.5 py-2 text-xs font-semibold text-zinc-50 bg-violet-600 hover:bg-violet-500 hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] border border-violet-500/20 rounded-xl transition-all duration-200 cursor-pointer"
-            >
+            <Button type="submit" size="md">
               <Save className="w-3.5 h-3.5" />
               <span>Save DID Profile</span>
-            </button>
+            </Button>
           </div>
         </form>
       </div>

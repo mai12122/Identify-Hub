@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SimulatedEVM } from '../mockBlockchain';
 import { Search, ShieldCheck, XCircle, CheckCircle2, Cpu, HelpCircle } from 'lucide-react';
+import Button from './ui/Button';
 
 interface VerifierPortalProps {
   evm: SimulatedEVM;
@@ -49,7 +50,7 @@ export default function VerifierPortal({ evm, addToast }: VerifierPortalProps) {
     <div id="verifier-portal" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Search Input Panel */}
       <div className="lg:col-span-5 space-y-6">
-        <div className="bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+        <div className="card p-6">
           <h3 className="text-base font-semibold font-display tracking-tight text-zinc-100 mb-4 flex items-center space-x-2.5">
             <Search className="w-5.5 h-5.5 text-violet-400" />
             <span>On-Chain Verification Gate</span>
@@ -86,18 +87,14 @@ export default function VerifierPortal({ evm, addToast }: VerifierPortalProps) {
               )}
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 text-xs font-semibold text-zinc-50 bg-violet-600 hover:bg-violet-500 hover:shadow-[0_0_15px_rgba(139,92,246,0.2)] border border-violet-500/20 rounded-xl transition-all duration-200 cursor-pointer"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>{loading ? 'Verifying Proof...' : 'Verify On-Chain Ledger'}</span>
-            </button>
+              <Button type="submit" disabled={loading} size="md">
+                <ShieldCheck className="w-4 h-4" />
+                <span>{loading ? 'Verifying Proof...' : 'Verify On-Chain Ledger'}</span>
+              </Button>
           </form>
         </div>
 
-        <div className="bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+        <div className="card p-5">
           <h4 className="text-xs font-semibold text-zinc-200 mb-3.5 uppercase tracking-widest font-mono flex items-center space-x-2">
             <HelpCircle className="w-4 h-4 text-violet-400" />
             <span>Why Is This Secure?</span>
@@ -109,7 +106,7 @@ export default function VerifierPortal({ evm, addToast }: VerifierPortalProps) {
       </div>
 
       {/* Verification Output Screen */}
-      <div className="lg:col-span-7 bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col justify-center min-h-[300px]">
+      <div className="lg:col-span-7 card p-6 flex flex-col justify-center min-h-[300px]">
         {loading ? (
           <div className="flex flex-col items-center justify-center space-y-3 py-12">
             <div className="w-10 h-10 border-2 border-violet-400 border-t-transparent rounded-full animate-spin"></div>
