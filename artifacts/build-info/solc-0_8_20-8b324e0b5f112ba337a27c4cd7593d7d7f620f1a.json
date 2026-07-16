@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_20-8b324e0b5f112ba337a27c4cd7593d7d7f620f1a",
+  "solcVersion": "0.8.20",
+  "solcLongVersion": "0.8.20+commit.a1b79de6",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/IdentityRegistry.sol": "project/contracts/IdentityRegistry.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/IdentityRegistry.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\n/**\n * @title IdentityRegistry\n * @dev Decentralized Identity (DID) system for issuing, managing, and verifying credentials.\n */\ncontract IdentityRegistry {\n    struct Profile {\n        string name;\n        string email;\n        string metadataURI; // IPFS hash or DID document URL\n        uint256 createdAt;\n        bool exists;\n    }\n\n    struct Credential {\n        uint256 id;\n        address subject;\n        address issuer;\n        string credentialType; // e.g., \"Degree\", \"KYC\", \"Employment\"\n        string dataHash;       // Cryptographic hash of the credential data\n        uint256 issueDate;\n        uint256 expiryDate;\n        bool isRevoked;\n        bool exists;\n    }\n\n    // Mappings\n    mapping(address => Profile) public profiles;\n    mapping(uint256 => Credential) public credentials;\n    mapping(address => bool) public authorizedIssuers;\n    \n    uint256 public credentialCount;\n    address public admin;\n\n    // Events\n    event ProfileUpdated(address indexed user, string name, string email, string metadataURI);\n    event CredentialIssued(uint256 indexed id, address indexed subject, address indexed issuer, string credentialType);\n    event CredentialRevoked(uint256 indexed id, address indexed issuer);\n    event IssuerAuthorized(address indexed issuer, bool status);\n\n    modifier onlyAdmin() {\n        require(msg.sender == admin, \"Only admin can perform this action\");\n        _;\n    }\n\n    modifier onlyIssuer() {\n        require(authorizedIssuers[msg.sender] || msg.sender == admin, \"Not an authorized issuer\");\n        _;\n    }\n\n    constructor() {\n        admin = msg.sender;\n        authorizedIssuers[msg.sender] = true; // Admin is issuer by default\n    }\n\n    function authorizeIssuer(address issuer, bool status) external onlyAdmin {\n        authorizedIssuers[issuer] = status;\n        emit IssuerAuthorized(issuer, status);\n    }\n\n    function createOrUpdateProfile(\n        string calldata name,\n        string calldata email,\n        string calldata metadataURI\n    ) external {\n        profiles[msg.sender] = Profile({\n            name: name,\n            email: email,\n            metadataURI: metadataURI,\n            createdAt: block.timestamp,\n            exists: true\n        });\n        emit ProfileUpdated(msg.sender, name, email, metadataURI);\n    }\n\n    function issueCredential(\n        address subject,\n        string calldata credentialType,\n        string calldata dataHash,\n        uint256 expiryDate\n    ) external onlyIssuer returns (uint256) {\n        require(subject != address(0), \"Invalid subject address\");\n        \n        credentialCount++;\n        credentials[credentialCount] = Credential({\n            id: credentialCount,\n            subject: subject,\n            issuer: msg.sender,\n            credentialType: credentialType,\n            dataHash: dataHash,\n            issueDate: block.timestamp,\n            expiryDate: expiryDate,\n            isRevoked: false,\n            exists: true\n        });\n\n        emit CredentialIssued(credentialCount, subject, msg.sender, credentialType);\n        return credentialCount;\n    }\n\n    function revokeCredential(uint256 id) external {\n        require(credentials[id].exists, \"Credential does not exist\");\n        require(credentials[id].issuer == msg.sender || msg.sender == admin, \"Only issuer or admin can revoke\");\n        require(!credentials[id].isRevoked, \"Already revoked\");\n\n        credentials[id].isRevoked = true;\n        emit CredentialRevoked(id, msg.sender);\n    }\n\n    function verifyCredential(uint256 id) external view returns (\n        bool isValid,\n        address subject,\n        address issuer,\n        string memory credentialType,\n        string memory dataHash,\n        uint256 expiryDate,\n        bool isRevoked\n    ) {\n        Credential memory cred = credentials[id];\n        if (!cred.exists) {\n            return (false, address(0), address(0), \"\", \"\", 0, false);\n        }\n\n        bool expired = cred.expiryDate > 0 && block.timestamp > cred.expiryDate;\n        isValid = !cred.isRevoked && !expired;\n\n        return (\n            isValid,\n            cred.subject,\n            cred.issuer,\n            cred.credentialType,\n            cred.dataHash,\n            cred.expiryDate,\n            cred.isRevoked\n        );\n    }\n\n    function getProfile(address user) external view returns (\n        string memory name,\n        string memory email,\n        string memory metadataURI,\n        uint256 createdAt,\n        bool exists\n    ) {\n        Profile memory p = profiles[user];\n        return (p.name, p.email, p.metadataURI, p.createdAt, p.exists);\n    }\n}\n"
+      }
+    }
+  }
+}
