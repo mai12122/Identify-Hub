@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileCode, Play, Cpu, ShieldAlert, CheckCircle2, Copy } from 'lucide-react';
+import { FileCode, Play, Cpu, ShieldAlert, CheckCircle2, Copy, Terminal, Check } from 'lucide-react';
 
 const SOLIDITY_CODE = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
@@ -203,7 +203,7 @@ export default function ContractIDE() {
     setTimeout(() => {
       setIsCompiling(false);
       setCompiled(true);
-    }, 1200);
+    }, 1100);
   };
 
   const handleCopy = () => {
@@ -212,104 +212,131 @@ export default function ContractIDE() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Split lines to render line numbers
+  const codeLines = SOLIDITY_CODE.split('\n');
+
   return (
-    <div id="contract-ide" className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full font-mono">
+    <div id="contract-ide" className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full font-mono animate-fade-in">
       {/* Code Editor */}
-      <div className="lg:col-span-8 flex flex-col bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.3)] min-h-[500px]">
-        <div className="flex items-center justify-between px-4.5 py-3 bg-zinc-950/60 border-b border-zinc-900/50">
-          <div className="flex items-center space-x-2">
+      <div className="lg:col-span-8 flex flex-col bg-zinc-950/60 border border-white/5 rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.4)] min-h-[500px]">
+        {/* IDE Tab Header */}
+        <div className="flex items-center justify-between px-4.5 py-3 bg-zinc-950 border-b border-white/5">
+          <div className="flex items-center space-x-2.5">
             <div className="flex space-x-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500/60"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500/60"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60"></span>
             </div>
-            <span className="text-xs text-zinc-400 font-mono pl-2 font-medium">IdentityRegistry.sol</span>
+            <div className="h-4 w-[1px] bg-white/10"></div>
+            <div className="flex items-center space-x-1.5">
+              <FileCode className="w-3.5 h-3.5 text-violet-400" />
+              <span className="text-xs text-zinc-300 font-medium">IdentityRegistry.sol</span>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={handleCopy}
-              className="p-2 text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-900/40 hover:bg-zinc-900/80 border border-zinc-800/60 rounded-xl transition-all duration-200 cursor-pointer"
+              className="p-1.5 text-xs text-zinc-400 hover:text-white bg-white/3 hover:bg-white/8 border border-white/5 rounded-lg transition-all cursor-pointer"
               title="Copy Solidity Code"
             >
-              {copied ? 'Copied!' : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
             <button
               onClick={handleCompile}
               disabled={isCompiling}
-              className="flex items-center space-x-1.5 px-4 py-2 text-xs font-semibold text-zinc-50 bg-emerald-600 hover:bg-emerald-500 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] border border-emerald-500/20 rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-40"
+              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-50 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 border border-emerald-500/20 rounded-lg transition-all cursor-pointer"
             >
               <Play className={`w-3.5 h-3.5 ${isCompiling ? 'animate-spin' : ''}`} />
-              <span>{isCompiling ? 'Compiling...' : 'Compile Contract'}</span>
+              <span>{isCompiling ? 'Compiling...' : 'Compile'}</span>
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 font-mono text-xs text-emerald-400/80 leading-relaxed max-h-[600px] bg-zinc-950/40">
-          <pre className="whitespace-pre-wrap">{SOLIDITY_CODE}</pre>
+        {/* Code View with numbers */}
+        <div className="flex-1 overflow-y-auto p-4 flex font-mono text-[11px] leading-relaxed max-h-[550px] bg-zinc-950/20 select-text">
+          {/* Numbers column */}
+          <div className="text-zinc-600 text-right pr-4 select-none border-r border-white/5 shrink-0 text-right w-8">
+            {codeLines.map((_, i) => (
+              <div key={i}>{i + 1}</div>
+            ))}
+          </div>
+          {/* Solidity text column */}
+          <div className="pl-4 text-zinc-300 overflow-x-auto flex-1 select-text">
+            <pre className="whitespace-pre">
+              {SOLIDITY_CODE}
+            </pre>
+          </div>
         </div>
       </div>
 
       {/* Compile Logs and Details */}
       <div className="lg:col-span-4 flex flex-col space-y-6">
         {/* Compiler Status */}
-        <div className="bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
-          <h3 className="text-sm font-semibold font-display tracking-tight text-zinc-200 mb-3.5 flex items-center space-x-2">
+        <div className="card p-5 flex flex-col">
+          <h3 className="text-sm font-semibold font-display tracking-tight text-zinc-200 mb-4 flex items-center space-x-2">
             <Cpu className="w-4 h-4 text-emerald-400" />
-            <span>Compiler Status</span>
+            <span>Solidity Compiler Settings</span>
           </h3>
 
           {isCompiling ? (
-            <div className="flex flex-col items-center justify-center py-6">
+            <div className="flex flex-col items-center justify-center py-8">
               <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p className="text-xs text-zinc-400 font-mono">Running solc v0.8.20...</p>
+              <p className="text-xs text-zinc-400 font-mono">Invoking solc v0.8.20 compiler optimization pipeline...</p>
             </div>
           ) : compiled ? (
             <div className="space-y-4">
-              <div className="flex items-start space-x-3 bg-emerald-950/10 border border-emerald-500/15 p-3.5 rounded-xl text-emerald-400 shadow-[0_4px_20px_rgba(16,185,129,0.01)]">
+              <div className="flex items-start space-x-3 bg-emerald-500/5 border border-emerald-500/20 p-3.5 rounded-xl text-emerald-400">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-xs font-semibold text-emerald-400 font-mono">Compiled Successfully</p>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">Optimization: 200 runs. EVM: Shanghai.</p>
+                  <p className="text-xs font-bold text-emerald-400 font-mono">Compilation Successful</p>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">solc v0.8.20+commit.a1b2c3d4</p>
                 </div>
               </div>
 
-              <div className="space-y-2.5 py-1">
-                <div className="flex justify-between text-xs font-mono">
-                  <span className="text-zinc-500">Bytecode Size</span>
-                  <span className="text-zinc-200 font-medium">12.44 KB</span>
+              <div className="space-y-2 py-1 text-xs text-zinc-400 font-mono">
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Target VM:</span>
+                  <span className="text-zinc-200 font-semibold">Shanghai / POS</span>
                 </div>
-                <div className="flex justify-between text-xs font-mono">
-                  <span className="text-zinc-500">Estimated Gas</span>
-                  <span className="text-zinc-200 font-medium">~680,000 gas</span>
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Optimizer Runs:</span>
+                  <span className="text-zinc-200 font-semibold">200 runs</span>
                 </div>
-                <div className="flex justify-between text-xs font-mono">
-                  <span className="text-zinc-500">Contract Owner</span>
-                  <span className="text-zinc-200 text-right truncate max-w-[150px] font-medium">0xf39F...2266</span>
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">ABI Size:</span>
+                  <span className="text-zinc-200 font-semibold">1,412 bytes</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-500">Owner Admin:</span>
+                  <span className="text-zinc-200 truncate max-w-[120px]">0xf39F...2266</span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-start space-x-3 bg-amber-950/10 border border-amber-500/15 p-3.5 rounded-xl text-amber-500 shadow-[0_4px_20px_rgba(245,158,11,0.01)]">
+            <div className="flex items-start space-x-3 bg-amber-500/5 border border-amber-500/20 p-3.5 rounded-xl text-amber-500">
               <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-semibold text-amber-500 font-mono">Uncompiled</p>
-                <p className="text-[11px] text-zinc-400 mt-0.5">Solidity file has been created. Click compile to prepare ABI/Bytecode.</p>
+                <p className="text-xs font-bold text-amber-500 font-mono font-display">Uncompiled Code</p>
+                <p className="text-[10px] text-zinc-400 mt-0.5">Click Compile to generate JSON ABI Metadata.</p>
               </div>
             </div>
           )}
         </div>
 
         {/* ABI Inspector */}
-        <div className="bg-zinc-900/20 border border-zinc-900/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex-1 flex flex-col">
-          <h3 className="text-sm font-semibold font-display tracking-tight text-zinc-200 mb-3 flex items-center space-x-2">
-            <FileCode className="w-4 h-4 text-violet-400" />
-            <span>Contract ABI</span>
-          </h3>
-          <p className="text-xs text-zinc-400 mb-3.5">
-            The Application Binary Interface (ABI) represents the JSON metadata used by ethers.js to interact with the Solidity functions on-chain.
+        <div className="card p-5 flex flex-col flex-1">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold font-display tracking-tight text-zinc-200 flex items-center space-x-2">
+              <Terminal className="w-4 h-4 text-violet-400" />
+              <span>Generated ABI</span>
+            </h3>
+            <span className="text-[9px] bg-violet-500/10 border border-violet-500/20 text-violet-400 font-mono px-2 py-0.5 rounded uppercase font-bold">JSON</span>
+          </div>
+          <p className="text-xs text-zinc-400 mb-3.5 leading-relaxed">
+            The JSON spec containing your mapped function types, used by ethers.js provider clients:
           </p>
 
-          <div className="flex-1 bg-zinc-950/60 rounded-xl p-3.5 font-mono text-[10px] text-violet-300 overflow-y-auto max-h-[250px] border border-zinc-900/80">
+          <div className="flex-1 bg-zinc-950/80 rounded-xl p-3 font-mono text-[9px] text-violet-300 overflow-y-auto max-h-[220px] border border-white/5 select-all">
             <pre>{JSON.stringify(CONTRACT_ABI, null, 2)}</pre>
           </div>
         </div>

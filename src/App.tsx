@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { SimulatedEVM, SIMULATED_WALLETS } from './mockBlockchain';
 import { SimulatedWallet } from './types';
@@ -25,7 +25,12 @@ import {
   AlertCircle,
   Info,
   X,
-  ChevronDown
+  ChevronDown,
+  ChevronUp,
+  Radio,
+  Sparkles,
+  Link2,
+  Coins
 } from 'lucide-react';
 import Button from './components/ui/Button';
 
@@ -57,6 +62,9 @@ export default function App() {
   const [metaMaskNetwork, setMetaMaskNetwork] = useState<string | null>(null);
   const [metaMaskConnected, setMetaMaskConnected] = useState<boolean>(false);
   const [metaMaskLoading, setMetaMaskLoading] = useState<boolean>(false);
+
+  // Persona dropdown open/closed
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Notification Toast State
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -119,6 +127,30 @@ export default function App() {
     addToast('Disconnected MetaMask. Switched to local simulated EVM node.', 'info');
   };
 
+  // Fetch MetaMask balance helper
+  const updateMetaMaskBalance = useCallback(async (addressOverride?: string) => {
+    const targetAddress = addressOverride || metaMaskAddress;
+    if (providerMode === 'METAMASK' && targetAddress && (window as any).ethereum) {
+      try {
+        const provider = new ethers.BrowserProvider((window as any).ethereum);
+        const balanceBig = await provider.getBalance(targetAddress);
+        const balanceEth = ethers.formatEther(balanceBig);
+        setMetaMaskBalance(parseFloat(balanceEth).toFixed(4));
+      } catch (err) {
+        console.error("Error updating MetaMask balance:", err);
+      }
+    }
+  }, [providerMode, metaMaskAddress]);
+
+  // Periodically refresh MetaMask balance & on account/provider change
+  useEffect(() => {
+    if (providerMode === 'METAMASK' && metaMaskAddress) {
+      updateMetaMaskBalance();
+      const interval = setInterval(() => updateMetaMaskBalance(), 8000); // Poll every 8s
+      return () => clearInterval(interval);
+    }
+  }, [providerMode, metaMaskAddress, updateMetaMaskBalance]);
+
   // Standard MetaMask Listeners
   useEffect(() => {
     if ((window as any).ethereum) {
@@ -147,6 +179,19 @@ export default function App() {
     }
   }, []);
 
+  // Request Testnet / Sim Faucet
+  const requestFaucet = () => {
+    if (providerMode === 'SIMULATED') {
+      const addr = activeSimWallet.address.toLowerCase();
+      evmRef.current.balances[addr] = (evmRef.current.balances[addr] || 0) + 10.0;
+      refreshOnChainState();
+      addToast(`Faucet request successful! Credited +10.0000 ETH to ${activeSimWallet.name}.`, 'success');
+    } else {
+      updateMetaMaskBalance();
+      addToast('Fetched absolute latest balance from your active MetaMask network! For more test ETH, please use a public testnet faucet (e.g. Sepolia Faucet).', 'info');
+    }
+  };
+
   // Compute active variables based on providerMode
   const activeAddress = providerMode === 'METAMASK' && metaMaskAddress ? metaMaskAddress : activeSimWallet.address;
   const activeRole = providerMode === 'METAMASK' ? 'User/MetaMask' : activeSimWallet.role;
@@ -161,22 +206,32 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07080B] text-zinc-100 flex flex-col font-sans select-none antialiased">
-      {/* Sleek Top Glow Effect */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[120px] bg-gradient-to-b from-violet-900/10 to-transparent blur-3xl pointer-events-none z-0"></div>
+    <div className="min-h-screen text-zinc-100 flex flex-col font-sans select-none antialiased relative overflow-hidden bg-[#030712]">
+      {/* Eye-catching premium top neon bar */}
+      <div className="neon-top-bar w-full absolute top-0 left-0 z-50"></div>
+
+      {/* Futuristic Cyber grid background overlay */}
+      <div className="cyber-grid"></div>
+
+      {/* Sleek Ambient Top Glow Effect */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[180px] bg-gradient-to-b from-violet-600/15 via-cyan-500/5 to-transparent blur-3xl pointer-events-none z-0"></div>
 
       {/* Header Bar */}
-      <header className="relative border-b border-zinc-900/70 bg-[#07080B]/65 backdrop-blur-xl sticky top-0 z-40 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-violet-500/10 rounded-xl text-violet-400 border border-violet-500/15 shadow-[0_0_15px_rgba(139,92,246,0.08)]">
-            <Shield className="w-5.5 h-5.5 animate-pulse" />
+      <header className="relative border-b border-white/5 bg-zinc-950/60 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="p-2.5 bg-gradient-to-br from-violet-600/20 to-cyan-500/10 rounded-2xl text-violet-400 border border-violet-500/20 shadow-[0_0_20px_rgba(139,92,246,0.15)] shrink-0">
+            <Shield className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-base font-bold font-display tracking-tight text-zinc-50 flex items-center space-x-2">
-              <span>Decentralized Identity Hub</span>
-              <span className="text-[9px] bg-violet-950/40 text-violet-400 border border-violet-900/40 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-semibold">DID Registry</span>
-            </h1>
-            <p className="text-xs text-zinc-400">Secure credential tracking on EVM compatible blockchains</p>
+            <div className="flex items-center space-x-2.5">
+              <h1 className="text-base font-bold font-display tracking-tight text-white flex items-center">
+                Decentralized Identity Hub
+              </h1>
+              <span className="text-[9px] bg-violet-500/10 text-violet-300 border border-violet-500/20 px-2.5 py-0.5 rounded-full font-mono uppercase tracking-widest font-bold">
+                W3C DID Registry
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-0.5">Secure fullstack on-chain verifiable credential issuer & vault</p>
           </div>
         </div>
 
@@ -184,65 +239,90 @@ export default function App() {
         <div className="flex flex-wrap items-center gap-3">
           {/* Simulated Wallet Swapper */}
           {providerMode === 'SIMULATED' && (
-            <div className="relative group">
-              <div className="flex items-center space-x-1 bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800/60 rounded-xl px-3.5 py-2 cursor-pointer transition-all duration-200">
+            <div className="relative">
+              <div 
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center space-x-2 bg-white/3 hover:bg-white/8 border border-white/5 hover:border-violet-500/20 rounded-xl px-3.5 py-2 cursor-pointer transition-all duration-200"
+              >
                 <div className="text-right">
                   <p className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider">Sim Wallet Role</p>
-                  <p className="text-xs font-medium text-zinc-300">{activeSimWallet.name}</p>
+                  <p className="text-xs font-semibold text-zinc-200">{activeSimWallet.name}</p>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-500 pl-1.5 transition-transform duration-200 group-hover:translate-y-[1px]" />
+                {dropdownOpen ? (
+                  <ChevronUp className="w-3.5 h-3.5 text-zinc-400 pl-1.5 transition-transform duration-200" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5 text-zinc-400 pl-1.5 transition-transform duration-200" />
+                )}
               </div>
 
               {/* Dropdown Menu */}
-              <div className="absolute right-0 mt-2 w-64 bg-zinc-950 border border-zinc-900 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] py-1.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 z-50 origin-top-right">
-                <p className="px-3.5 py-2 text-[9px] font-semibold text-zinc-500 uppercase tracking-widest border-b border-zinc-900/80">
-                  Select Simulated Persona
-                </p>
-                {SIMULATED_WALLETS.map((wallet, idx) => (
-                  <div
-                    key={wallet.address}
-                    onClick={() => {
-                      setActiveSimWalletIdx(idx);
-                      addToast(`Swapped simulated persona to: ${wallet.name}`, 'info');
-                    }}
-                    className={`px-3.5 py-2.5 text-xs hover:bg-zinc-900/60 cursor-pointer flex items-center justify-between border-b border-zinc-900/40 last:border-0 transition-all duration-150 ${
-                      activeSimWalletIdx === idx ? 'bg-violet-950/20 text-violet-400' : 'text-zinc-300'
-                    }`}
-                  >
-                    <div>
-                      <p className="font-medium">{wallet.name}</p>
-                      <p className="text-[9px] text-zinc-500 font-mono mt-0.5 truncate max-w-[170px]">{wallet.address}</p>
-                    </div>
-                    <span className="text-[9px] bg-zinc-900 px-1.5 py-0.5 rounded text-zinc-400 font-mono">
-                      {wallet.role}
-                    </span>
+              {dropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)}></div>
+                  <div className="absolute right-0 mt-2 w-64 bg-zinc-950/95 border border-white/5 rounded-2xl shadow-[0_15px_35px_rgba(0,0,0,0.6)] py-1.5 z-50 origin-top-right animate-fade-in backdrop-blur-md">
+                    <p className="px-3.5 py-2 text-[9px] font-bold text-zinc-500 uppercase tracking-widest border-b border-white/5">
+                      Select Simulated Persona
+                    </p>
+                    {SIMULATED_WALLETS.map((wallet, idx) => (
+                      <div
+                        key={wallet.address}
+                        onClick={() => {
+                          setActiveSimWalletIdx(idx);
+                          setDropdownOpen(false);
+                          addToast(`Swapped simulated persona to: ${wallet.name}`, 'info');
+                        }}
+                        className={`px-3.5 py-2.5 text-xs hover:bg-white/5 cursor-pointer flex items-center justify-between border-b border-white/5 last:border-0 transition-all duration-150 ${
+                          activeSimWalletIdx === idx ? 'bg-violet-500/10 text-violet-300' : 'text-zinc-300'
+                        }`}
+                      >
+                        <div>
+                          <p className="font-semibold">{wallet.name}</p>
+                          <p className="text-[9px] text-zinc-500 font-mono mt-0.5 truncate max-w-[150px]">{wallet.address}</p>
+                        </div>
+                        <span className="text-[9px] bg-zinc-900 border border-white/5 px-2 py-0.5 rounded-md text-zinc-400 font-mono font-semibold">
+                          {wallet.role}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
           )}
 
           {/* Wallet connection status */}
-          <div className="flex items-center space-x-2.5 bg-zinc-900/40 border border-zinc-800/60 rounded-xl px-4 py-2 text-xs">
-            <Wallet className="w-3.5 h-3.5 text-violet-400" />
+          <div className="flex items-center space-x-3 bg-white/2 border border-white/5 rounded-xl px-4 py-2 text-xs">
+            <Wallet className="w-4 h-4 text-violet-400 shrink-0" />
             <div className="font-mono">
-              <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Active Key</p>
-              <p className="text-zinc-300 font-medium truncate max-w-[110px]" title={activeAddress}>
+              <p className="text-[9px] text-zinc-500 uppercase tracking-widest">Active Address</p>
+              <p className="text-zinc-300 font-semibold truncate max-w-[100px]" title={activeAddress}>
                 {activeAddress}
               </p>
             </div>
-            <div className="border-l border-zinc-800/80 pl-3.5">
-              <p className="text-[9px] text-zinc-500 uppercase font-mono tracking-wider">Balance</p>
-              <p className="text-emerald-400 font-medium">{activeBalance}</p>
+            <div className="border-l border-white/5 pl-3.5 pr-1 flex items-center justify-between gap-2.5">
+              <div>
+                <p className="text-[9px] text-zinc-500 uppercase font-mono tracking-widest">Balance</p>
+                <p className="text-emerald-400 font-bold">{activeBalance}</p>
+              </div>
+              <button
+                onClick={requestFaucet}
+                title="Request +10.0 ETH Faucet"
+                className="p-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 rounded border border-violet-500/20 hover:border-violet-500/40 transition-all cursor-pointer flex items-center justify-center"
+              >
+                <Coins className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
           {/* MetaMask Toggle Button */}
           {metaMaskConnected ? (
-            <Button onClick={disconnectMetaMask} variant="ghost" size="sm">Disconnect</Button>
+            <Button onClick={disconnectMetaMask} variant="ghost" size="sm">
+              <Link2 className="w-3.5 h-3.5" />
+              <span>Disconnect</span>
+            </Button>
           ) : (
             <Button onClick={connectMetaMask} disabled={metaMaskLoading} className="flex items-center space-x-2" size="md">
-              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shrink-0" />
               <span>{metaMaskLoading ? 'Connecting...' : 'Connect Wallet'}</span>
             </Button>
           )}
@@ -252,18 +332,18 @@ export default function App() {
       {/* Main Grid Content */}
       <div className="relative flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 z-10">
         {/* Navigation Sidebar */}
-        <aside className="lg:col-span-3 space-y-4">
-          <nav className="card backdrop-blur-md p-4 space-y-1.5">
-            <h2 className="px-3 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-              DApp Modules
+        <aside className="lg:col-span-3 space-y-5">
+          <nav className="card p-4.5 space-y-1.5">
+            <h2 className="px-3 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-mono">
+              DApp Core Modules
             </h2>
 
             <button
               onClick={() => setActiveTab('identity')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === 'identity'
-                  ? 'bg-violet-600 text-zinc-50 shadow-md shadow-violet-950/20 border border-violet-500/20'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/40'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-violet-950/20 border border-violet-500/20'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/3'
               }`}
             >
               <User className="w-4 h-4 shrink-0" />
@@ -272,10 +352,10 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('issuer')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === 'issuer'
-                  ? 'bg-violet-600 text-zinc-50 shadow-md shadow-violet-950/20 border border-violet-500/20'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/40'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-violet-950/20 border border-violet-500/20'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/3'
               }`}
             >
               <Cpu className="w-4 h-4 shrink-0" />
@@ -284,10 +364,10 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('vault')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === 'vault'
-                  ? 'bg-violet-600 text-zinc-50 shadow-md shadow-violet-950/20 border border-violet-500/20'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/40'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-violet-950/20 border border-violet-500/20'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/3'
               }`}
             >
               <Award className="w-4 h-4 shrink-0" />
@@ -296,26 +376,26 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('verifier')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === 'verifier'
-                  ? 'bg-violet-600 text-zinc-50 shadow-md shadow-violet-950/20 border border-violet-500/20'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/40'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-violet-950/20 border border-violet-500/20'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/3'
               }`}
             >
               <Search className="w-4 h-4 shrink-0" />
               <span>Verification Gate</span>
             </button>
 
-            <h2 className="px-3 pt-5 pb-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-t border-zinc-900/50 mt-3.5">
+            <h2 className="px-3 pt-5 pb-2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-mono border-t border-white/5 mt-3.5">
               Blockchain Workspace
             </h2>
 
             <button
               onClick={() => setActiveTab('ide')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === 'ide'
-                  ? 'bg-violet-600 text-zinc-50 shadow-md shadow-violet-950/20 border border-violet-500/20'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/40'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-violet-950/20 border border-violet-500/20'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/3'
               }`}
             >
               <FileCode className="w-4 h-4 shrink-0" />
@@ -324,10 +404,10 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab('node')}
-              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer ${
+              className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === 'node'
-                  ? 'bg-violet-600 text-zinc-50 shadow-md shadow-violet-950/20 border border-violet-500/20'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/40'
+                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-violet-950/20 border border-violet-500/20'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/3'
               }`}
             >
               <Activity className="w-4 h-4 shrink-0" />
@@ -336,19 +416,23 @@ export default function App() {
           </nav>
 
           {/* Network Connection Mode Switcher */}
-          <div className="card backdrop-blur-md p-4.5 space-y-3.5">
-            <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-              Ledger Connectivity
-            </h3>
-            <div className="grid grid-cols-2 gap-2 bg-zinc-950 p-1 border border-zinc-900 rounded-xl">
+          <div className="card space-y-4">
+            <div className="flex items-center space-x-2 text-zinc-300">
+              <Radio className="w-4 h-4 text-violet-400 animate-pulse" />
+              <h3 className="text-[10px] font-bold uppercase tracking-widest font-mono">
+                Ledger Connectivity
+              </h3>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 bg-zinc-950 p-1 border border-white/5 rounded-xl">
               <button
                 onClick={() => {
                   setProviderMode('SIMULATED');
                   addToast('Swapped ledger connectivity to Sandbox Mode.', 'info');
                 }}
-                className={`py-1.5 text-center text-[10px] font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                className={`py-1.5 text-center text-[10px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${
                   providerMode === 'SIMULATED'
-                    ? 'bg-violet-500/10 text-violet-400 border border-violet-500/25'
+                    ? 'bg-violet-500/10 text-violet-300 border border-violet-500/20'
                     : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
                 }`}
               >
@@ -356,26 +440,26 @@ export default function App() {
               </button>
               <button
                 onClick={connectMetaMask}
-                className={`py-1.5 text-center text-[10px] font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
+                className={`py-1.5 text-center text-[10px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${
                   providerMode === 'METAMASK'
-                    ? 'bg-violet-500/10 text-violet-400 border border-violet-500/25'
+                    ? 'bg-violet-500/10 text-violet-300 border border-violet-500/20'
                     : 'text-zinc-500 hover:text-zinc-300 border border-transparent'
                 }`}
               >
                 MetaMask
               </button>
             </div>
-            <p className="text-[10px] text-zinc-500 leading-relaxed">
+            <p className="text-[10px] text-zinc-500 leading-relaxed font-sans">
               {providerMode === 'SIMULATED'
-                ? 'Using a zero-gas simulated EVM environment inside the browser sandbox. Recommended for instantaneous, hassle-free validation!'
-                : `Connected to MetaMask on ${metaMaskNetwork || 'Active Web3 Network'}. All actions are dispatched to a live blockchain network.`}
+                ? 'Running within a direct EVM environment. Actions execute instantly with simulated block times, optimal for frictionless validation.'
+                : `Active provider session via MetaMask on ${metaMaskNetwork || 'Custom network'}. Transactions prompt real cryptographic key signatures.`}
             </p>
           </div>
         </aside>
 
         {/* Dynamic Display Area */}
         <main className="lg:col-span-9 h-full min-h-[500px]">
-          <div className="animate-fade-in h-full">
+          <div className="h-full">
             {activeTab === 'identity' && (
               <ProfilePanel
                 evm={evm}
@@ -424,12 +508,12 @@ export default function App() {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto p-4 rounded-2xl border flex items-start space-x-3 shadow-[0_15px_35px_rgba(0,0,0,0.6)] backdrop-blur-xl animate-fade-in transition-all duration-300 ${
+            className={`pointer-events-auto p-4 rounded-2xl border flex items-start space-x-3 shadow-[0_15px_35px_rgba(0,0,0,0.6)] backdrop-blur-md animate-fade-in transition-all duration-300 ${
               toast.type === 'success'
-                ? 'bg-zinc-950/85 border-emerald-500/20 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]'
+                ? 'bg-zinc-950/90 border-emerald-500/20 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]'
                 : toast.type === 'error'
-                ? 'bg-zinc-950/85 border-rose-500/20 text-rose-400 shadow-[0_0_20px_rgba(239,68,68,0.05)]'
-                : 'bg-zinc-950/85 border-violet-500/20 text-violet-300 shadow-[0_0_20px_rgba(139,92,246,0.05)]'
+                ? 'bg-zinc-950/90 border-rose-500/20 text-rose-400 shadow-[0_0_20px_rgba(239,68,68,0.05)]'
+                : 'bg-zinc-950/90 border-violet-500/20 text-violet-300 shadow-[0_0_20px_rgba(139,92,246,0.05)]'
             }`}
           >
             {toast.type === 'success' ? (
@@ -440,10 +524,10 @@ export default function App() {
               <Info className="w-5 h-5 shrink-0 mt-0.5" />
             )}
             <div className="flex-1 text-xs leading-normal">
-              <p className="font-semibold text-zinc-100">
-                {toast.type === 'success' ? 'Transaction Success' : toast.type === 'error' ? 'Blockchain Error' : 'System Event'}
+              <p className="font-bold text-zinc-100 font-display">
+                {toast.type === 'success' ? 'Ledger Transaction Confirmed' : toast.type === 'error' ? 'Transaction Exception' : 'System Notice'}
               </p>
-              <p className="text-zinc-400 mt-0.5 font-mono text-[11px] break-all">{toast.message}</p>
+              <p className="text-zinc-400 mt-1 font-mono text-[10px] break-all leading-normal">{toast.message}</p>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
