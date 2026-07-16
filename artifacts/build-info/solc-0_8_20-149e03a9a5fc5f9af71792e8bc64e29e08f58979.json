@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_20-149e03a9a5fc5f9af71792e8bc64e29e08f58979",
+  "solcVersion": "0.8.20",
+  "solcLongVersion": "0.8.20+commit.a1b79de6",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/IdentityToken.sol": "project/contracts/IdentityToken.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "shanghai",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/IdentityToken.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\n/**\n * @title IdentityToken\n * @dev Simple ERC20 Token representing identity credentials or utility within the hub.\n */\ncontract IdentityToken {\n    string public name = \"Identity Token\";\n    string public symbol = \"IDT\";\n    uint8 public decimals = 18;\n    uint256 public totalSupply;\n\n    mapping(address => uint256) public balanceOf;\n    mapping(address => mapping(address => uint256)) public allowance;\n\n    event Transfer(address indexed from, address indexed to, uint256 value);\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    constructor(uint256 initialSupply) {\n        mint(msg.sender, initialSupply * 10 ** uint256(decimals));\n    }\n\n    function transfer(address to, uint256 value) public returns (bool success) {\n        require(balanceOf[msg.sender] >= value, \"Insufficient balance\");\n        balanceOf[msg.sender] -= value;\n        balanceOf[to] += value;\n        emit Transfer(msg.sender, to, value);\n        return true;\n    }\n\n    function approve(address spender, uint256 value) public returns (bool success) {\n        allowance[msg.sender][spender] = value;\n        emit Approval(msg.sender, spender, value);\n        return true;\n    }\n\n    function transferFrom(address from, address to, uint256 value) public returns (bool success) {\n        require(balanceOf[from] >= value, \"Insufficient balance\");\n        require(allowance[from][msg.sender] >= value, \"Insufficient allowance\");\n        balanceOf[from] -= value;\n        allowance[from][msg.sender] -= value;\n        balanceOf[to] += value;\n        emit Transfer(from, to, value);\n        return true;\n    }\n\n    function mint(address to, uint256 value) internal {\n        totalSupply += value;\n        balanceOf[to] += value;\n        emit Transfer(address(0), to, value);\n    }\n}\n"
+      }
+    }
+  }
+}

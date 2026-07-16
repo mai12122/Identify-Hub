@@ -2,5 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { IdentityRegistry } from './IdentityRegistry.js';
+export type { IdentityToken } from './IdentityToken.js';
 export * as factories from './factories/index.js';
 export { IdentityRegistry__factory } from './factories/IdentityRegistry__factory.js';
+export { IdentityToken__factory } from './factories/IdentityToken__factory.js';
